@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 import logging
 from pathlib import Path
@@ -34,10 +35,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount frontend static files
+# Get frontend path
 frontend_path = Path(__file__).parent.parent / "frontend"
 if frontend_path.exists():
+    # Mount static files
     app.mount("/static", StaticFiles(directory=frontend_path), name="static")
+
+# Root route - serve index.html
+@app.get("/")
+async def root():
+    """Serve the main application"""
+    index_path = frontend_path / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path)
+    return {"message": "Welcome to Retired AI"}
 
 # Health check endpoint
 @app.get("/health", response_model=HealthResponse)
