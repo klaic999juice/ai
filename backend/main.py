@@ -1,10 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from sqlalchemy.orm import Session
 import logging
 from pathlib import Path
+import os
 
 from backend.config import settings
 from backend.database import get_db, Base, engine
@@ -26,10 +27,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Setup CORS
+# Setup CORS - Allow all origins for Vercel deployment
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins,
+    allow_origins=["*"],  # Allow all origins for Vercel
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,18 +38,45 @@ app.add_middleware(
 
 # Get frontend path
 frontend_path = Path(__file__).parent.parent / "frontend"
-if frontend_path.exists():
-    # Mount static files
-    app.mount("/static", StaticFiles(directory=frontend_path), name="static")
 
-# Root route - serve index.html
-@app.get("/")
+# Try to mount static files if they exist
+try:
+    if frontend_path.exists():
+        app.mount("/static", StaticFiles(directory=frontend_path), name="static")
+        logger.info(f"Static files mounted from {frontend_path}")
+except Exception as e:
+    logger.warning(f"Could not mount static files: {e}")
+
+# Root route - serve index.html or embedded HTML
+@app.get("/", response_class=HTMLResponse)
 async def root():
     """Serve the main application"""
-    index_path = frontend_path / "index.html"
-    if index_path.exists():
-        return FileResponse(index_path)
-    return {"message": "Welcome to Retired AI"}
+    try:
+        index_path = frontend_path / "index.html"
+        if index_path.exists():
+            with open(index_path, 'r') as f:
+                return f.read()
+    except Exception as e:
+        logger.error(f"Error reading index.html: {e}")
+    
+    # Fallback: Return basic welcome
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Retired AI</title>
+        <style>
+            body { font-family: Arial; margin: 50px; }
+            h1 { color: #0ea5e9; }
+        </style>
+    </head>
+    <body>
+        <h1>🤖 Retired AI</h1>
+        <p>Loading application...</p>
+        <p><a href="/docs">API Documentation</a></p>
+    </body>
+    </html>
+    """
 
 # Health check endpoint
 @app.get("/health", response_model=HealthResponse)
