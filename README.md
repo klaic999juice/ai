@@ -1,182 +1,89 @@
-# AI Q&A Website
+# Stadium Clash
 
-An intelligent question-answering website powered by OpenAI's GPT API, similar to GitHub Copilot. This application provides a web interface for users to ask questions and receive AI-generated answers.
+A browser-based 3D football game prototype built with React, Vite, Three.js, and a separate WebSocket multiplayer backend.
 
-## Features
+## Overview
 
-- 🤖 **AI-Powered Q&A**: Get intelligent answers using OpenAI's GPT models
-- 💬 **Chat Interface**: Clean, user-friendly chat UI
-- 📝 **Conversation History**: Keep track of your questions and answers
-- 🔐 **API Key Management**: Secure handling of API credentials
-- ⚡ **Real-time Responses**: Stream responses for better UX
-- 🎨 **Responsive Design**: Works on desktop and mobile
+This project includes:
+- A Vite + React + TypeScript frontend for the game UI and 3D pitch
+- A Three.js and React Three Fiber stadium scene
+- A playable local match with AI teammates/opponents, scoring, timer, and UI
+- A WebSocket server for matchmaking and room-based online play
+- Supabase-ready client configuration for profiles, leaderboard, and match history
+- Unit tests for key gameplay logic
 
-## Tech Stack
+## Tech stack
 
-### Backend
-- **Python 3.9+**
-- **FastAPI**: Modern async web framework
-- **OpenAI API**: GPT-4/GPT-3.5 for AI responses
-- **SQLAlchemy**: Database ORM
-- **Pydantic**: Data validation
+- Frontend: React, TypeScript, Vite, Tailwind CSS
+- 3D: Three.js, React Three Fiber, Drei
+- Physics: @react-three/rapier
+- Multiplayer server: Node.js + WebSocket server
+- Database: Supabase client integration prepared
+- Deployment: Vercel frontend, separate Node hosting for multiplayer backend
 
-### Frontend
-- **HTML5/CSS3**: Modern responsive design
-- **JavaScript (Vanilla)**: Interactive chat interface
-- **Fetch API**: Communication with backend
+## Local development
 
-## Prerequisites
+1. Install dependencies:
 
-- Python 3.9 or higher
-- OpenAI API key (get one at https://platform.openai.com/api-keys)
-- pip (Python package manager)
+   npm install
 
-## Installation
+2. Start the multiplayer server:
 
-### 1. Clone the Repository
+   npm run server
+
+3. Start the frontend in another terminal:
+
+   npm run dev
+
+4. Open the app in a browser:
+
+   http://localhost:5173
+
+## Environment variables
+
+Copy `.env.example` to `.env` and fill in your values.
+
+Example:
+
 ```bash
-git clone https://github.com/klaic999juice/ai.git
-cd ai
+cp .env.example .env
 ```
 
-### 2. Create Virtual Environment
+The main variables are:
+- `VITE_WS_URL` for the multiplayer backend
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+## Tests
+
+Run gameplay logic tests:
+
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+npm test
 ```
 
-### 3. Install Dependencies
+## Production build
+
 ```bash
-pip install -r requirements.txt
+npm run build
 ```
 
-### 4. Environment Setup
-Create a `.env` file in the root directory:
-```
-OPENAI_API_KEY=your_api_key_here
-DATABASE_URL=sqlite:///./ai_chat.db
-```
+## Vercel deployment
 
-### 5. Run the Application
-```bash
-python main.py
-```
+Frontend:
+1. Import the repo into Vercel
+2. Set the framework as Vite
+3. Configure the build command: `npm run build`
+4. Configure output directory: `dist`
+5. Set production env vars: `VITE_WS_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
 
-The application will start at `http://localhost:8000`
+Multiplayer backend:
+1. Deploy `server/index.js` to a persistent Node host such as Render, Railway, Fly.io, or a VPS
+2. Expose the WebSocket port (default 8787)
+3. Point `VITE_WS_URL` at the deployed host
 
-## API Endpoints
+## Notes
 
-### POST `/api/chat`
-Send a question and get an AI response.
-
-**Request:**
-```json
-{
-  "message": "How do I create a Python virtual environment?",
-  "model": "gpt-4"
-}
-```
-
-**Response:**
-```json
-{
-  "response": "To create a Python virtual environment...",
-  "model": "gpt-4",
-  "tokens_used": 150
-}
-```
-
-### GET `/api/history`
-Get conversation history (paginated).
-
-**Query Parameters:**
-- `skip` (default: 0)
-- `limit` (default: 50)
-
-### POST `/api/clear-history`
-Clear conversation history.
-
-## Project Structure
-
-```
-ai/
-├── backend/
-│   ├── main.py              # FastAPI app entry point
-│   ├── config.py            # Configuration settings
-│   ├── models.py            # SQLAlchemy models
-│   ├── schemas.py           # Pydantic schemas
-│   ├── database.py          # Database setup
-│   ├── crud.py              # Database operations
-│   └── ai_service.py        # OpenAI API integration
-├── frontend/
-│   ├── index.html           # Main HTML file
-│   ├── css/
-│   │   └── style.css        # Styling
-│   └── js/
-│       └── app.js           # Frontend logic
-├── .env.example             # Example environment variables
-├── requirements.txt         # Python dependencies
-└── README.md               # This file
-```
-
-## Development
-
-### Running in Development Mode
-```bash
-# Install development dependencies
-pip install -r requirements-dev.txt
-
-# Run with auto-reload
-python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### Running Tests
-```bash
-pytest tests/
-```
-
-## Deployment
-
-### Using Gunicorn
-```bash
-pip install gunicorn
-gunicorn -w 4 -k uvicorn.workers.UvicornWorker backend.main:app
-```
-
-### Docker
-```bash
-docker build -t ai-chat-app .
-docker run -p 8000:8000 -e OPENAI_API_KEY=your_key ai-chat-app
-```
-
-## Configuration
-
-Edit `backend/config.py` to customize:
-- Default AI model (GPT-4, GPT-3.5-turbo, etc.)
-- Max tokens per response
-- Temperature (creativity level)
-- Database settings
-
-## Security
-
-- ⚠️ Never commit `.env` file with real API keys
-- Use environment variables for sensitive data
-- Implement rate limiting for production
-- Add authentication for multi-user scenarios
-- Validate all user inputs
-
-## License
-
-MIT License - see LICENSE file for details
-
-## Contributing
-
-Contributions welcome! Please feel free to submit a Pull Request.
-
-## Support
-
-For issues and questions, please create a GitHub issue.
-
----
-
-**Built with ❤️ for AI-powered conversations**
+- The local match is fully playable with keyboard/mobile controls.
+- The multiplayer server is authoritative for room creation, join logic, player state, and basic validation.
+- The project is intentionally structured to allow extension into a more advanced production football game.
